@@ -70,8 +70,9 @@
     Failure.prototype.isSuccess = false;
     Failure.prototype.isFailure = true;
 
-    function makeParser(parser) {
+    function makeParser(delayedParser) {
         return function(str, tramp, cont) {
+            var parser = delayedParser();
             if(tramp && cont) {
                 return parser(str, tramp, cont);
             }
