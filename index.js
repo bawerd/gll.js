@@ -152,9 +152,14 @@
             var entry, isEmpty, i, result;
 
             function resultSubsumed(entry, result) {
-                var i;
+                var i, current;
                 for(i = 0; i < entry.results.length; i++) {
-                    if(entry.results[i] == result)
+                    current = entry.results[i];
+                    if(current.isSuccess != result.isSuccess)
+                        continue;
+                    else if(current.isSuccess && current.val == result.val && current.rest == result.rest)
+                        return true;
+                    else if(current.rest == result.rest)
                         return true;
                 }
                 return false;
@@ -203,7 +208,10 @@
                         this,
                         function(result) {
                             var i;
-                            if(resultSubsumed(entry, result)) return;
+
+                            if(resultSubsumed(entry, result))
+                                return;
+
                             entry.results.push(result);
                             for(i = 0; i < entry.conts.length; i++) {
                                 entry.conts[i](result);
