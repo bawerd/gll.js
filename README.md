@@ -12,8 +12,8 @@ About
 -----
 
 Generalised parsers are special because they can handle any ambiguous
-grammar. They work by performing a breadth-first search on all
-possible transitions.
+context-free grammar. They work by performing a breadth-first search
+on all possible transitions.
 
 This library provides combinators for creating and composing
 generalised parsers. Any combination of parsers can be composed
