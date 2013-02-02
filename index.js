@@ -1,5 +1,5 @@
 (function(global) {
-    var Stream, succeed, string, seq, alt;
+    var Stream, succeed, string, regexp, seq, alt;
 
     function constant(value) {
         return function() {
@@ -239,6 +239,19 @@
         };
     });
 
+    regexp = memo(function(pattern) {
+        return function(str, tramp, cont) {
+            var match = str.match(pattern),
+                head = match[0],
+                tail = str.substr(head.length);
+
+            if(match.index)
+                return cont(Failure(str));
+
+            return cont(Success(head, tail));
+        };
+    });
+
     function bind(p, fn) {
         return function(str, tramp, cont) {
             return p(str, tramp, function(result) {
@@ -286,6 +299,7 @@
     global.Stream = Stream;
     global.success = succeed;
     global.string = string;
+    global.regexp = regexp;
     global.bind = bind;
     global.seq = seq;
     global.alt = alt;
