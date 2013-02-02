@@ -1,5 +1,5 @@
 (function(global) {
-    var Stream, succeed, string, regexp, seq, alt;
+    var Stream, succeed, string, regexp, seq, alt, red;
 
     function constant(value) {
         return function() {
@@ -291,6 +291,12 @@
         };
     });
 
+    red = memo(function(p, fn) {
+        return bind(p, function(val) {
+            return succeed(fn(val));
+        });
+    });
+
     global.Success = Success;
     global.Failure = Failure;
     global.makeParser = makeParser;
@@ -303,4 +309,5 @@
     global.bind = bind;
     global.seq = seq;
     global.alt = alt;
+    global.red = red;
 })(typeof exports == 'undefined' ? this.gll = {} : exports);
