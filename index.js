@@ -259,11 +259,15 @@
     regexp = memo(function(pattern) {
         return function(str, tramp, cont) {
             var match = str.match(pattern),
-                head = match[0],
-                tail = str.substr(head.length);
+                head,
+                tail;
 
-            if(match.index)
+            if(!match || match.index)
                 return cont(Failure(str));
+
+            head = match[0];
+            tail = str.substr(head.length);
+
 
             return cont(Success(head, tail));
         };
