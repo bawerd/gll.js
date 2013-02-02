@@ -1,0 +1,24 @@
+{
+  "name": "gll.js",
+  "version": "0.0.0",
+  "description": "Generalised Parser Combinators (GLL)",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+      "jasmine-node": "~1.1"
+  },
+  "scripts": {
+    "test": "jasmine-node tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/pufuwozu/gll.js.git"
+  },
+  "keywords": [
+    "parser",
+    "combinators"
+  ],
+  "author": "Brian McKenna",
+  "license": "MIT",
+  "readmeFilename": "README.md"
+}
