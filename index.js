@@ -18,7 +18,10 @@
             toArray: constant([])
         },
         fromArray: function(a) {
-            var s = function() { return Stream.Empty; }, i;
+            var s, i;
+            if(!a.length) return Stream.Empty;
+
+            s = function() { return Stream.Empty; };
             for(i = 0; i < a.length; i++) {
                 s = Stream.Cons(a[i], s);
             }
