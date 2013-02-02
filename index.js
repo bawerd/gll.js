@@ -111,12 +111,20 @@
     function memo(fn) {
         var memoized = [];
         return function() {
-            var i, result, entry;
+            var i, j, all, result, entry;
 
             for(i = 0; i < memoized.length; i++) {
-                if(memoized[i].key == arguments) {
-                    return memoized[i].value;
+                if(memoized[i].key.length != arguments.length)
+                    continue;
+
+                all = true;
+
+                for(j = 0; j < arguments.length; j++) {
+                    all = all && memoized[i].key[j] == arguments[j];
                 }
+
+                if(all)
+                    return memoized[i].value;
             }
 
             result = fn.apply(null, arguments);
@@ -223,7 +231,7 @@
             }
 
             entry.conts.push(cont);
-            for(i = 0; i < entry.result.length; i++) {
+            for(i = 0; i < entry.results.length; i++) {
                 cont(entry.results[i]);
             }
         };
