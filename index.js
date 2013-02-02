@@ -269,7 +269,7 @@
         function seq2(b, a) {
             return bind(a, function(x) {
                 return bind(b, function(y) {
-                    return succeed(x.concat(y));
+                    return succeed(x + y);
                 });
             });
         }
