@@ -1,5 +1,11 @@
 (function(global) {
-    var Stream, succeed, string, seq;
+    var Stream, succeed, string, seq, alt;
+
+    function constant(value) {
+        return function() {
+            return value;
+        };
+    }
 
     Stream = {
         Cons: function(val, rest) {
@@ -8,20 +14,41 @@
             this.rest = rest;
         },
         Empty: {
-            isEmpty: true
+            isEmpty: true,
+            toArray: constant([])
         },
         fromArray: function(a) {
-            var s = Stream.Empty, i;
+            var s = function() { return Stream.Empty; }, i;
             for(i = 0; i < a.length; i++) {
                 s = Stream.Cons(a[i], s);
             }
             return s;
         },
-        append: function(s) {
-            throw new Error("TODO");
+        append: function(a, b) {
+            var r = b, vals, i;
+            if(a.isEmpty) return b;
+            if(b.isEmpty) return a;
+
+            vals = [a.val];
+            while((a = a.rest()) && !a.isEmpty) {
+                vals.push(a.val);
+            }
+
+            for(i = vals.length - 1; i >= 0; i--) {
+                r = Stream.Cons(vals[i], constant(r));
+            }
+
+            return r;
         }
     };
     Stream.Cons.prototype.isEmpty = false;
+    Stream.Cons.prototype.toArray = function() {
+        var vals = [this.val], stream = this;
+        while((stream = stream.rest()) && !stream.isEmpty) {
+            vals.push(stream.val);
+        }
+        return vals;
+    };
 
     function Success(val, rest) {
         if(!(this instanceof Success)) return new Success(val, rest);
@@ -64,7 +91,7 @@
             var result = Stream.fromArray(results);
             results = [];
             if(tramp.hasNext()) {
-                return Stream.append(result, makeStream(compute()));
+                return Stream.append(result, compute());
             }
             return result;
         }
@@ -100,8 +127,10 @@
     }
 
     function Trampoline() {
+        var table = [];
+
         this.stack = [];
-        this.table = [];
+        this.table = table;
 
         this.hasNext = function() {
             return this.stack.length > 0;
@@ -111,13 +140,80 @@
             var head;
             if(!this.hasNext()) return;
 
-            head = this.stack[0];
-            this.stack.splice(0, 1);
+            head = this.stack.shift();
             head.fn.apply(null, head.args);
         };
 
-        this.push = function() {
-            throw new Error("TODO");
+        this.push = function(fn, str, cont) {
+            var entry, isEmpty, i, result;
+
+            function resultSubsumed(entry, result) {
+                var i;
+                for(i = 0; i < entry.results.length; i++) {
+                    if(entry.results[i] == result)
+                        return true;
+                }
+                return false;
+            }
+
+            function tableRef(fn, str) {
+                var memo, entry, i;
+
+                for(i = 0; i < table.length; i++) {
+                    if(table[i].key == fn) {
+                        memo = table[i].value;
+                        break;
+                    }
+                }
+
+                if(memo && memo[str]) {
+                    entry = memo[str];
+                } else if(memo) {
+                    entry = {
+                        conts: [],
+                        results: []
+                    };
+                    memo[str] = entry;
+                } else {
+                    entry = {
+                        conts: [],
+                        results: []
+                    };
+                    table.push({
+                        key: fn,
+                        value: entry
+                    });
+                }
+                return entry;
+            }
+
+            entry = tableRef(fn, str);
+            isEmpty = !entry.conts.length && !entry.results.length;
+            entry.conts.push(cont);
+
+            if(isEmpty) {
+                this.stack.push({
+                    fn: fn,
+                    args: [
+                        str,
+                        this,
+                        function(result) {
+                            var i;
+                            if(resultSubsumed(entry, result)) return;
+                            entry.results.push(result);
+                            for(i = 0; i < entry.conts.length; i++) {
+                                entry.conts[i](result);
+                            }
+                        }
+                    ]
+                });
+                return;
+            }
+
+            entry.conts.push(cont);
+            for(i = 0; i < entry.result.length; i++) {
+                cont(entry.results[i]);
+            }
         };
     }
 
@@ -169,6 +265,16 @@
         return result;
     });
 
+    alt = memo(function() {
+        var parsers = arguments;
+        return function(str, tramp, cont) {
+            var i;
+            for(i = 0; i < parsers.length; i++) {
+                tramp.push(parsers[i], str, cont);
+            }
+        };
+    });
+
     global.Success = Success;
     global.Failure = Failure;
     global.makeParser = makeParser;
@@ -179,4 +285,5 @@
     global.string = string;
     global.bind = bind;
     global.seq = seq;
+    global.alt = alt;
 })(typeof exports == 'undefined' ? this.gll = {} : exports);
