@@ -71,8 +71,10 @@
     Failure.prototype.isFailure = true;
 
     function makeParser(delayedParser) {
+        var parser;
         return function(str, tramp, cont) {
-            var parser = delayedParser();
+            if(!parser)
+                parser = delayedParser();
             if(tramp && cont) {
                 return parser(str, tramp, cont);
             }
