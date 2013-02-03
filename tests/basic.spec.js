@@ -16,7 +16,7 @@ describe('Basic', function() {
             );
         });
 
-        for(i = 1; i < 15; i++) {
+        for(i = 1; i < 10; i++) {
             input = '';
             for(j = 0; j < i; j++) {
                 input += 'b';

@@ -110,6 +110,21 @@
         return compute();
     }
 
+    function isEqual(a, b) {
+        var all, i;
+        if(typeof a != typeof b) {
+            return false;
+        } else if(a instanceof Array) {
+            if(a.length != b.length) return false;
+            all = true;
+            for(i = 0; i < a.length; i++) {
+                all = all && isEqual(a[i], b[i]);
+            }
+            return all;
+        }
+        return a == b;
+    }
+
     function memo(fn) {
         var memoized = [];
         return function() {
@@ -120,9 +135,9 @@
                     continue;
 
                 all = true;
-
                 for(j = 0; j < arguments.length; j++) {
-                    all = all && memoized[i].key[j] == arguments[j];
+                    all = all && isEqual(memoized[i].key[j], arguments[j]);
+                    if(!all) break;
                 }
 
                 if(all)
@@ -167,7 +182,7 @@
                     current = entry.results[i];
                     if(current.isSuccess != result.isSuccess)
                         continue;
-                    else if(current.isSuccess && current.val == result.val && current.rest == result.rest)
+                    else if(current.isSuccess && isEqual(current.val, result.val) && current.rest == result.rest)
                         return true;
                     else if(current.rest == result.rest)
                         return true;
@@ -269,7 +284,6 @@
 
             head = match[0];
             tail = str.substr(head.length);
-
 
             return cont(Success(head, tail));
         };
