@@ -303,12 +303,17 @@
     }
 
     seq = memo(function seq() {
-        var result = succeed([]), i;
+        var result = succeed(tagArray([])), i;
+
+        function tagArray(array) {
+            array.fromSeq = true;
+            return array;
+        }
 
         function seq2(b, a) {
             return bind(a, function(x) {
                 return bind(b, function(y) {
-                    return succeed(x.concat([y]));
+                    return succeed(tagArray(x.concat([y])));
                 });
             });
         }
@@ -332,7 +337,7 @@
 
     red = memo(function red(p, fn) {
         return bind(p, function(val) {
-            var args = val instanceof Array ? val : [val];
+            var args = val instanceof Array && val.fromSeq ? val : [val];
             return succeed(fn.apply(null, args));
         });
     });
