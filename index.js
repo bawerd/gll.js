@@ -287,12 +287,12 @@
     }
 
     seq = memo(function() {
-        var result = succeed(''), i;
+        var result = succeed([]), i;
 
         function seq2(b, a) {
             return bind(a, function(x) {
                 return bind(b, function(y) {
-                    return succeed(x + y);
+                    return succeed(x.concat([y]));
                 });
             });
         }
@@ -316,7 +316,8 @@
 
     red = memo(function(p, fn) {
         return bind(p, function(val) {
-            return succeed(fn(val));
+            var args = val instanceof Array ? val : [val];
+            return succeed(fn.apply(null, args));
         });
     });
 
