@@ -127,7 +127,7 @@
 
     function memo(fn) {
         var memoized = [];
-        return function() {
+        function memoed() {
             var i, j, all, result, entry;
 
             for(i = 0; i < memoized.length; i++) {
@@ -152,24 +152,25 @@
             memoized.push(entry);
 
             return result;
-        };
+        }
+        memoed._name = memoed.name = fn.name || fn._name;
+        memoed._length = memoed.length = fn.length || fn._length;
+        return memoed;
     }
 
     function Trampoline() {
-        var table = [];
-
-        this.stack = [];
-        this.table = table;
+        var table = [],
+            stack = [];
 
         this.hasNext = function() {
-            return this.stack.length > 0;
+            return stack.length > 0;
         };
 
         this.step = function() {
             var head;
             if(!this.hasNext()) return;
 
-            head = this.stack.shift();
+            head = stack.shift();
             head.fn.apply(null, head.args);
         };
 
@@ -226,7 +227,7 @@
             entry.conts.push(cont);
 
             if(isEmpty) {
-                this.stack.push({
+                stack.push({
                     fn: fn,
                     args: [
                         str,
@@ -254,13 +255,13 @@
         };
     }
 
-    succeed = memo(function(val) {
+    succeed = memo(function succeed(val) {
         return function(str, tramp, cont) {
             return cont(Success(val, str));
         };
     });
 
-    string = memo(function(match) {
+    string = memo(function string(match) {
         return function(str, tramp, cont) {
             var len = Math.min(str.length, match.length),
                 head = str.substr(0, len),
@@ -273,7 +274,7 @@
         };
     });
 
-    regexp = memo(function(pattern) {
+    regexp = memo(function regexp(pattern) {
         return function(str, tramp, cont) {
             var match = str.match(pattern),
                 head,
@@ -293,14 +294,15 @@
         return function(str, tramp, cont) {
             return p(str, tramp, function(result) {
                 if(result.isSuccess) {
-                    return fn(result.val)(result.rest, tramp, cont);
+                    fn(result.val)(result.rest, tramp, cont);
+                    return;
                 }
-                return cont(result);
+                cont(result);
             });
         };
     }
 
-    seq = memo(function() {
+    seq = memo(function seq() {
         var result = succeed([]), i;
 
         function seq2(b, a) {
@@ -318,7 +320,7 @@
         return result;
     });
 
-    alt = memo(function() {
+    alt = memo(function alt() {
         var parsers = arguments;
         return function(str, tramp, cont) {
             var i;
@@ -328,7 +330,7 @@
         };
     });
 
-    red = memo(function(p, fn) {
+    red = memo(function red(p, fn) {
         return bind(p, function(val) {
             var args = val instanceof Array ? val : [val];
             return succeed(fn.apply(null, args));
